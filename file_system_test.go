@@ -106,6 +106,7 @@ func TestReaddir(t *testing.T) {
 			Path:  "/",
 			Error: "",
 			Files: []string{
+				"application-23a0.js",
 				"empty",
 				"img",
 				"index.html",
