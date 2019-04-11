@@ -296,7 +296,7 @@ func TestFile(t *testing.T) {
 			require.Equal(int64(0), n)
 		}
 		buf := make([]byte, size)
-		n, err := r.Read(buf)
+		n, err := io.ReadFull(r, buf)
 		require.NoError(err)
 		require.Equal(size, n)
 		md5Text := fmt.Sprintf("%x", md5.Sum(buf))
