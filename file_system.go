@@ -41,7 +41,14 @@ func New(name string) (*FileSystem, error) {
 	if err != nil {
 		return nil, err
 	}
-	zipReader, err := zip.NewReader(file, fi.Size())
+	return NewFromReaderAt(file, fi.Size(), file)
+}
+
+// NewFromReaderAt will open the Zip file accessible by readerAt with the given size.
+// The closer will be called when the file system is closed
+// (you can use io/ioutil.NopCloser(nil) for a closer doing nothing, or your file to have it being closed).
+func NewFromReaderAt(readerAt io.ReaderAt, size int64, closer io.Closer) (*FileSystem, error) {
+	zipReader, err := zip.NewReader(readerAt, size)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +60,8 @@ func New(name string) (*FileSystem, error) {
 	// does not need to be in the FileSystem structure. Keeping it
 	// there for now but may remove it in future.
 	fs := &FileSystem{
-		closer:    file,
-		readerAt:  file,
+		closer:    closer,
+		readerAt:  readerAt,
 		reader:    zipReader,
 		fileInfos: fileInfoMap{},
 	}
