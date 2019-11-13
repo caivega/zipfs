@@ -328,3 +328,39 @@ func TestFile(t *testing.T) {
 		file.Close()
 	}
 }
+
+func TestNewFromReaderAt_NilCloser(t *testing.T) {
+	require := require.New(t)
+	file, err := os.Open("testdata/testdata.zip")
+	require.NoError(err)
+	defer file.Close()
+	size, err := file.Seek(0, io.SeekEnd)
+	require.NoError(err)
+	fs, err := NewFromReaderAt(file, size, nil)
+	require.NotNil(fs)
+	err = fs.Close()
+	require.NoError(err)
+
+	// should be able to seek file to the beginning
+	// because it has not been closed
+	_, err = file.Seek(0, io.SeekStart)
+	require.NoError(err)
+}
+
+func TestNewFromReaderAt_WithCloser(t *testing.T) {
+	require := require.New(t)
+	file, err := os.Open("testdata/testdata.zip")
+	require.NoError(err)
+	defer file.Close()
+	size, err := file.Seek(0, io.SeekEnd)
+	require.NoError(err)
+	fs, err := NewFromReaderAt(file, size, file)
+	require.NotNil(fs)
+	err = fs.Close()
+	require.NoError(err)
+
+	// should not be able to seek file to the beginning
+	// because it has been closed
+	_, err = file.Seek(0, io.SeekStart)
+	require.Error(err)
+}
