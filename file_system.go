@@ -45,8 +45,7 @@ func New(name string) (*FileSystem, error) {
 }
 
 // NewFromReaderAt will open the Zip file accessible by readerAt with the given size.
-// The closer will be called when the file system is closed
-// (you can use io/ioutil.NopCloser(nil) for a closer doing nothing, or your file to have it being closed).
+// The closer, if not nil, will be called when the file system is closed.
 func NewFromReaderAt(readerAt io.ReaderAt, size int64, closer io.Closer) (*FileSystem, error) {
 	zipReader, err := zip.NewReader(readerAt, size)
 	if err != nil {
