@@ -31,7 +31,7 @@ func load(name string) (*zipfs.FileSystem, error) {
 }
 
 func main() {
-	http.HandleFunc("/", zipfs.FileServerWith(load, []string{"/v1/jsonrpc"}).ServeHTTP)
+	http.HandleFunc("/", zipfs.FileServerWith(load).ServeHTTP)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		panic(err)
