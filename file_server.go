@@ -32,9 +32,17 @@ func FileServer(fs *FileSystem) http.Handler {
 
 	return h
 }
+func FileServerWith(load func(name string) (*FileSystem, error)) http.Handler {
+	h := &fileHandler{
+		load: load,
+	}
+
+	return h
+}
 
 type fileHandler struct {
-	fs *FileSystem
+	fs   *FileSystem
+	load func(name string) (*FileSystem, error)
 }
 
 func (h *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -43,8 +51,31 @@ func (h *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		upath = "/" + upath
 		r.URL.Path = upath
 	}
-
-	serveFile(w, r, h.fs, path.Clean(upath), true)
+	if h.fs != nil {
+		serveFile(w, r, h.fs, path.Clean(upath), true)
+	} else {
+		fmt.Println(upath, path.Clean(upath))
+		ss := strings.Split(path.Clean(upath), "/")
+		list := make([]string, 0)
+		for i, segment := range ss {
+			fmt.Println(i, segment)
+			if len(segment) > 0 {
+				list = append(list, segment)
+			}
+		}
+		if len(list) > 0 {
+			account := list[0]
+			ipath := "/" + strings.Join(list[1:], "/")
+			fmt.Println("path", ipath)
+			fs, err := h.load(account)
+			if err != nil {
+				msg, code := toHTTPError(err)
+				http.Error(w, msg, code)
+				return
+			}
+			serveFile(w, r, fs, ipath, true)
+		}
+	}
 }
 
 // name is '/'-separated, not filepath.Separator.
