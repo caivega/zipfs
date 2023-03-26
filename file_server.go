@@ -54,11 +54,11 @@ func (h *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.fs != nil {
 		serveFile(w, r, h.fs, path.Clean(upath), true)
 	} else {
-		fmt.Println(upath, path.Clean(upath))
+		fmt.Println("page", upath, path.Clean(upath))
 		ss := strings.Split(path.Clean(upath), "/")
 		list := make([]string, 0)
-		for i, segment := range ss {
-			fmt.Println(i, segment)
+		for _, segment := range ss {
+			// fmt.Println(i, segment)
 			if len(segment) > 0 {
 				list = append(list, segment)
 			}
@@ -66,7 +66,7 @@ func (h *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if len(list) > 0 {
 			account := list[0]
 			ipath := "/" + strings.Join(list[1:], "/")
-			fmt.Println("path", ipath)
+			// fmt.Println("path", ipath)
 			fs, err := h.load(account)
 			if err != nil {
 				msg, code := toHTTPError(err)
