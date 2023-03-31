@@ -47,10 +47,10 @@ type fileHandler struct {
 
 func (h *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	upath := r.URL.Path
-	// if !strings.HasPrefix(upath, "/") {
-	// 	upath = "/" + upath
-	// 	r.URL.Path = upath
-	// }
+	if !strings.HasPrefix(upath, "/") {
+		upath = "/" + upath
+		r.URL.Path = upath
+	}
 	if h.fs != nil {
 		serveFile(w, r, h.fs, path.Clean(upath), true)
 	} else {
