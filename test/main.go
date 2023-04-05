@@ -118,7 +118,10 @@ func main() {
 	address := fmt.Sprintf("%s:%d", rpcAddress, rpcPort)
 
 	http.HandleFunc("/v1/jsonrpc", rpcService)
-	http.HandleFunc("/", zipfs.FileServerWith(load).ServeHTTP)
+
+	loadMap := make(map[string]func(name string) (*zipfs.FileSystem, error))
+	loadMap["page"] = load
+	http.Handle("/", zipfs.FileServerWith(loadMap))
 
 	log.Println("rpc server started on", address)
 	err := http.ListenAndServe(":8080", nil)

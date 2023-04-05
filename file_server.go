@@ -32,17 +32,17 @@ func FileServer(fs *FileSystem) http.Handler {
 
 	return h
 }
-func FileServerWith(load func(name string) (*FileSystem, error)) http.Handler {
+func FileServerWith(loadMap map[string]func(name string) (*FileSystem, error)) http.Handler {
 	h := &fileHandler{
-		load: load,
+		loadMap: loadMap,
 	}
 
 	return h
 }
 
 type fileHandler struct {
-	fs   *FileSystem
-	load func(name string) (*FileSystem, error)
+	fs      *FileSystem
+	loadMap map[string]func(name string) (*FileSystem, error)
 }
 
 func (h *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -63,17 +63,25 @@ func (h *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				list = append(list, segment)
 			}
 		}
-		if len(list) > 0 {
-			account := list[0]
-			ipath := "/" + strings.Join(list[1:], "/")
-			// fmt.Println("path", ipath)
-			fs, err := h.load(account)
-			if err != nil {
-				msg, code := toHTTPError(err)
-				http.Error(w, msg, code)
-				return
+		if len(list) > 1 {
+			name := list[0]
+			load, ok := h.loadMap[name]
+			if ok {
+				account := list[1]
+				ipath := "/" + strings.Join(list[2:], "/")
+				// fmt.Println("path", ipath)
+				fs, err := load(account)
+				if err != nil {
+					msg, code := toHTTPError(err)
+					http.Error(w, msg, code)
+					return
+				}
+				serveFile(w, r, fs, ipath, true)
+			} else {
+				http.Error(w, "404 page not found", http.StatusNotFound)
 			}
-			serveFile(w, r, fs, ipath, true)
+		} else {
+			http.Error(w, "403 Forbidden", http.StatusForbidden)
 		}
 	}
 }
